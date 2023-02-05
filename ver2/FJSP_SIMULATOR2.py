@@ -130,11 +130,7 @@ class FJSP_simulator():
             operation_number += self.j_list[job].remain_operation
         s_prime = self.set_state(operation_number,max_reservation_time,max_op,min_op)
         r = self.time-max_reservation_time
-        if self.num_of_op == 1:
-            done = True
-        else:
-            done = False
-        return s_prime, r , done, done2
+        return s_prime, r , done2
     
     def set_state(self,operation_number, makespan, max_op, min_op):
         if operation_number<10:
@@ -202,6 +198,11 @@ class FJSP_simulator():
             self.num_of_op -=1
         self.plotlydf.loc[self.j] = dict(Task=event_type, Start=start, Finish=end, Resource=machine.id) #간트차트를 위한 딕셔너리 생성, 데이터프레임에 집어넣음
         self.j+=1
+        if self.num_of_op == 0:
+            done = True
+        else:
+            done = False
+        return done
     
     def assign_setting(self, job, machine, reservation_time): #job = 1 machine = 1
         job.assign_setting()
@@ -238,7 +239,6 @@ class FJSP_simulator():
                     break
             
     def dispatching_rule_LPT(self):
-        
         
         for machine in self.r_list:
             if self.r_list[machine].status == 0:
@@ -370,98 +370,3 @@ class FJSP_simulator():
                     self.event_list.append((p_table[0][0], self.r_list[machine], self.time+setup_time, self.time+setup_time+p_table[0][1],"track_in_finish"))
                     self.assign_setting(p_table[0][0], self.r_list[machine],self.time+setup_time+p_table[0][1])
                     break
-#6, 2, 4, 5, 5, 2, 3, 2, 5, 4, 5       
-#6, 5, 4, 5, 6, 5, 3, 7, 5, 6, 5
-class QAgent():
-    def __init__(self):
-        self.q_table = np.zeros((100000000,6))
-        self.eps = 0.9
-        self.alpha = 0.01
-    
-    def get_state(self, s):
-        state = int(s)
-        return state
-        
-    def select_action(self, s):
-        coin = random.random()
-        k = self.get_state(s)
-        if coin < self.eps:
-            action = random.randint(0,5)
-        else:
-            action_val = copy.deepcopy(self.q_table[k,:])
-            action = np.argmax(action_val)
-        return action
-    
-    def select_action2(self, s):
-        k = self.get_state(s)
-        action_val = self.q_table[k,:]
-        action = np.argmax(action_val)
-        return action
-    
-    def update_table(self, transition):
-        s, a, r, s_prime = transition
-        k = self.get_state(s)
-        next_k = s_prime
-        a_prime = self.select_action(s_prime) 
-        next_k=self.get_state(next_k)
-        self.q_table[k,a] = self.q_table[k,a] + self.alpha * (r + self.q_table[next_k, a_prime] - self.q_table[k,a])
-            
-    def anneal_eps(self):
-        self.eps -=0.001
-        self.eps = max(self.eps, 0.2)
-    
-    def show(self):
-        print(self.q_table.tolist())
-        print(self.eps)
-      #리워드 수정
-      #num_of_op
-      #플로우타임 고려
-      #깃허브에 정리
-      #q_table -> 신경망 전환
-def main():
-    env = FJSP_simulator('C:/Users/parkh/FJSP_SIM4.csv','C:/Users/parkh/FJSP_SETUP_SIM.csv',1)
-    agent = QAgent()
-    for n_epi in range(1000):
-        print(n_epi)
-        done = False
-        s = env.reset()
-        z=0
-        while not done:
-            a = agent.select_action(s)
-            s_prime, r, done, done2 = env.step(a)
-            if done2 == False:
-                z+=1
-            if done2 == False:
-                agent.update_table((s,a,r,s_prime))
-                s = s_prime
-            else:
-                env.process_event()
-        agent.anneal_eps()
-        #if n_epi%10==0 or n_epi<10:
-            #print(n_epi,"에피소드가 지남")
-            #agent.show()
-    
-    done=False
-    s=env.reset()
-    k=[]
-    while not done:
-        a = agent.select_action2(s)
-        k.append(a)
-        s_prime, r, done,done2 = env.step(a)
-        if done2 == True:
-            env.process_event()
-        else:
-            print(s)
-            print(a)
-            s = s_prime
-    Flow_time, machine_util, util, makespan = env.performance_measure()
-    print(len(k))
-    #agent.show()
-    return Flow_time, machine_util, util, makespan
-av=0
-for i in range(1):
-    Flow_time, machine_util, util, makespan=main()
-    print("FlowTime:" , Flow_time)
-    print("machine_util:" , machine_util)
-    print("util:" , util)
-    print("makespan:" , makespan)
