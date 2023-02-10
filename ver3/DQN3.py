@@ -13,7 +13,7 @@ import torch.optim as optim
 import gym
 import collections
 import random
-from SIM5 import *
+from SIM6 import *
 
 learning_rate = 0.001  
 gamma = 1
@@ -45,7 +45,7 @@ class ReplayBuffer():
 class Qnet(nn.Module):
     def __init__(self):
         super(Qnet, self).__init__()
-        self.fc1 = nn.Linear(16,64)
+        self.fc1 = nn.Linear(68,64)
         self.fc2 = nn.Linear(64,32)
         self.fc3 = nn.Linear(32,6)
         self.number_of_time_list = np.array([1 for x in range(6)])
@@ -58,7 +58,7 @@ class Qnet(nn.Module):
     
     def sample_action(self, obs, epsilon):
         out = self.forward(obs)
-        print(out)
+        #print(out)
         out2 = out.detach().numpy()
         act_list = out2/self.number_of_time_list
         act = np.argmax(act_list)
@@ -99,13 +99,14 @@ def main():
     optimizer = optim.Adam(q.parameters(), lr=learning_rate)
     
     for n_epi in range(1000):
-        epsilon = max(0.01 , 0.08 - 0.05*(n_epi/200))
+        epsilon = max(0.01 , 0.08 - 0.02*(n_epi/200))
         s = env.reset()
         done = False
         score = 0.0
         while not done:
             a = q.sample_action(torch.from_numpy(s). float(), epsilon)
             s_prime, r, done2 = env.step(a)
+            #print(s_prime)
             z=0
             if done2 == False:
                 z+=1

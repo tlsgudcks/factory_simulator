@@ -15,9 +15,9 @@ import collections
 import random
 from SIM4 import *
 
-learning_rate = 0.0005
+learning_rate = 0.001
 gamma = 1
-buffer_limit = 30000
+buffer_limit = 10000
 batch_size = 16
 
 class ReplayBuffer():
@@ -85,15 +85,16 @@ def main():
     q_target = Qnet()
     q_target.load_state_dict(q.state_dict())
     memory = ReplayBuffer()
-    print_interval = 20
+    print_interval = 1
     score = 0.0
+    q_load = 20
     optimizer = optim.Adam(q.parameters(), lr=learning_rate)
     
     for n_epi in range(1000):
-        epsilon = max(0.01 , 0.08 - 0.01*(n_epi/200))
+        epsilon = max(0.01 , 0.08 - 0.02*(n_epi/200))
         s = env.reset()
         done = False
-        
+        score = 0.0
         while not done:
             a = q.sample_action(torch.from_numpy(s). float(), epsilon)
             s_prime, r, done2 = env.step(a)
@@ -108,16 +109,18 @@ def main():
                 done = env.process_event()
             if done:
                 break
-        if memory.size()>2000:
+        if memory.size()>1000:
             train(q, q_target, memory, optimizer)
             
         if n_epi % print_interval==0 and n_epi!=0:
-            q_target.load_state_dict(q.state_dict())
+            #q_target.load_state_dict(q.state_dict())
             print("n_episode: {}, score : {:.1f}, n_buffer : {}, eps : {:.1f}%".format(n_epi, score/print_interval,memory.size(),epsilon*100))
             score=0.0
+        if n_epi % q_load == 0 and n_epi!=0:
+            q_target.load_state_dict(q.state_dict())
         s = env.reset()
         done = False
-        
+    score = 0.0   
     while not done:
         a,out = q.select_action(torch.from_numpy(s). float(), epsilon)
         s_prime, r, done2 = env.step(a)
@@ -133,12 +136,12 @@ def main():
         if done:
             break
     Flow_time, machine_util, util, makespan = env.performance_measure()
-    print(z)
-    return Flow_time, machine_util, util, makespan
-Flow_time, machine_util, util, makespan=main()
+    return Flow_time, machine_util, util, makespan, score
+Flow_time, machine_util, util, makespan,score = main()
 print("FlowTime:" , Flow_time)
 print("machine_util:" , machine_util)
 print("util:" , util)
 print("makespan:" , makespan)
+print("Score" , score)
       
     

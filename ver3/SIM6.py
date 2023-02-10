@@ -12,8 +12,8 @@ import plotly.express as px
 import copy
 import random
 from matplotlib import pylab as plt
-from Resource import *
-from Job import *
+from Resource2 import *
+from Job2 import *
 from collections import defaultdict
     
     
@@ -89,6 +89,12 @@ class FJSP_simulator():
             r = Resource("M"+str(i+1))
             self.r_list[r.id] = r
             s.append(r.reservation_time)
+        for machine in self.r_list:
+            s.append(self.r_list[machine].setup_status)
+        for job in self.j_list:
+            max_op = self.j_list[job].max_operation
+            for i in range(max_op):
+                s.append(self.j_list[job].operation_in_machine[i])
         self.time = 0 #시간
         self.end = True #종료조건
         self.j = 0
@@ -125,7 +131,7 @@ class FJSP_simulator():
         for machine in self.r_list:
             if max_reservation_time < self.r_list[machine].reservation_time:
                 max_reservation_time = self.r_list[machine].reservation_time
-        r =  max_reservation_time - self.time
+        r =  self.time - max_reservation_time
         return s_prime, r , done2
     
     def set_state(self):
@@ -134,6 +140,12 @@ class FJSP_simulator():
             s.append(self.j_list[job].remain_operation)
         for machine in self.r_list:
             s.append(self.r_list[machine].reservation_time)
+        for machine in self.r_list:
+            s.append(self.r_list[machine].setup_status)
+        for job in self.j_list:
+            max_op = self.j_list[job].max_operation
+            for i in range(max_op):
+                s.append(self.j_list[job].operation_in_machine[i])                
         df = pd.Series(s)
         s = df.to_numpy()
         return s
@@ -197,7 +209,7 @@ class FJSP_simulator():
         return done
     
     def assign_setting(self, job, machine, reservation_time): #job = 1 machine = 1
-        job.assign_setting()
+        job.assign_setting(machine)
         machine.assign_setting(job, reservation_time)
         
     def complete_setting(self, job, machine):

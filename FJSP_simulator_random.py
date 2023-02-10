@@ -56,13 +56,16 @@ class FJSP_simulator():
         self.plotlydf = pd.DataFrame([],columns=['Task','Start','Finish','Resource'])
     def performance_measure(self):
         Flow_time = 0
-        machine_util = []
+        value_time_table = []
+        full_time_table = []
+        machine_util = 0
         util = 0
         makespan = self.time
         for machine in self.r_list:
-            util = self.r_list[machine].util()
-            machine_util.append(util)
-        util = sum(machine_util)/len(self.r_list)
+            value_added_time, full_time = self.r_list[machine].util()
+            value_time_table.append(value_added_time)
+            full_time_table.append(full_time)
+        util = sum(value_time_table)/sum(full_time_table)
         for job in self.j_list:
             Flow_time += self.j_list[job].job_flowtime
         return Flow_time, machine_util, util, makespan
@@ -82,6 +85,7 @@ class FJSP_simulator():
         print(self.num_of_op)
         fig = px.timeline(self.plotlydf, x_start="Start", x_end="Finish", y="Resource", color="Task", width=1000, height=400)
         fig.show()
+        return Flow_time, util, makespan
     #event = (job_type, operation, machine_type, start_time, end_time, event_type)
     def dispatching_rule_decision(self, a):
         if a == "random":
@@ -291,9 +295,19 @@ makespan_table = []
 util = []
 ft_table = []
 
-for i in range(20):
-    main = FJSP_simulator('C:/Users/parkh/FJSP_SIM.csv','C:/Users/parkh/FJSP_SETUP_SIM.csv',"random")
-    main.run()
+for i in range(6):
+    main = FJSP_simulator('C:/Users/parkh/FJSP_SIM4.csv','C:/Users/parkh/FJSP_SETUP_SIM.csv',i)
+    FT, util2, ms = main.run()
+    makespan_table.append(ms)
+    util.append(util2)
+    ft_table.append(FT)
+print(min(makespan_table))
+print(min(ft_table))
+print(max(util))
+print(sum(makespan_table)/1000)
+print(sum(ft_table)/1000)
+print(sum(util)/1000)
+
 #main = FJSP_simulator('C:/Users/parkh/FJSP_SIM.csv','C:/Users/parkh/FJSP_SETUP_SIM.csv',"random")
 #main.run()
 #main.printer()
