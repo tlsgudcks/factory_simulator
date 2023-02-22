@@ -14,7 +14,7 @@ class Job(object):
         self.current_operation_id = 1
         self.status = "WAIT"
         self.max_operation = max_operation
-        self.remain_operation = self.max_operation - self.current_operation_id + 1
+        self.remain_operation = self.max_operation
         # For History
         self.history_list = []
         self.setup_table = setup_table["j"+str(self.id)]
@@ -31,6 +31,8 @@ class Job(object):
         return jop
     
     def assign_setting(self, machine):
+        #print(self.max_operation)
+        #print(self.remain_operation)
         machine2 = machine.id
         machine_number = int(machine2[1:])
         self.operation_in_machine[self.current_operation_id - 1] = machine_number

@@ -118,6 +118,8 @@ class FJSP_simulator():
         util = sum(value_time_table)/sum(full_time_table)
         for job in self.j_list:
             Flow_time += self.j_list[job].job_flowtime
+        fig = px.timeline(self.plotlydf, x_start="Start", x_end="Finish", y="Resource", color="Task", width=1000, height=400)
+        fig.show()
         return Flow_time, machine_util, util, makespan
     
 
