@@ -41,7 +41,10 @@ class ReplayBuffer():
     
     def size(self):
         return len(self.buffer)
-
+# operation 48
+# job 12
+# machine 4
+# setup 4
 class Qnet(nn.Module):
     def __init__(self):
         super(Qnet, self).__init__()
